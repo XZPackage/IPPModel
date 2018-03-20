@@ -1,0 +1,25 @@
+Package: IPPModel
+Type: Package
+Title: Impact pattern plots and feature interaction networks
+Version: 0.1.0
+Date: 2018-3-25
+Author: Xiaohang Zhang
+Maintainer: Xiaohang Zhang <zhangxiaohang@bupt.edu.cn>
+Description: This package aims to interpret black box of supervised machine learning models by visualizing the impacts of features on predictical results and feature interaction network.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+imports:
+    rpart (>= 4.1-11),
+    R6 (>= 2.2.0),
+    parallel (>= 3.4.0),
+    xlsx (>= 0.5.7),
+    igraph (>= 1.0.1),
+    akmeans (>= 1.1),
+    cluster (>= 2.0.3),
+    fpc (>= 2.1-10)
+RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr

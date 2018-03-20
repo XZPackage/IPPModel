@@ -1,0 +1,17 @@
+{
+    "contents" : "library(IPPModel)\n\n#------ FIRST EXAMPLE\nlibrary(nnet)\ndata(\"bank\")\n# build model\nbank.NN <- nnet(y ~ ., data = bank, size = 5, maxit = 1000)\n# remove the output variable\nbank.ds = bank[-17]\n# create IPPModel object\nIPP.bank = IPPModel$new(XDS=bank.ds, PredFun=bank.NN,\n                        ModelPackage=\"nnet\", PredType=\"raw\", PredDim=1,\n                        XB.Size=1000, XB.SamplingMethod=\"joint\")\n# modify the clustering method to \"kmedoids\"\nIPP.bank$ParaTable$clusteringMethod = \"kmedoids\"\n# execute all tasks\nIPP.bank$ExecuteAll()\n# draw impact pattern plots (IPP)\nIPP.bank$DrawIPP(centralized = TRUE, nc = 4)\n# draw feature interaction network (FIN)\nIPP.bank$DrawFIN(threshold = 0.2, lay.out = igraph::layout.auto)\n# write the results into an excel file\nIPP.bank$WriteToExcel(\"output.xlsx\")\n\n\n#------ SECOND EXAMPLE\nlibrary(randomForest)\ndata(\"whitewine\")\n# build model\nWW.RF <- randomForest(quality ~ ., data = whitewine, mtry = 4,importance=TRUE, na.action=na.omit)\n# remove the output variable\nWW.ds = whitewine[-12]\n# create IPPModel object\nIPP.WW = IPPModel$new(XDS=WW.ds, PredFun=WW.RF,\n                      ModelPackage=\"randomForest\", PredType=\"response\", PredDim=1,\n                      XB.Size=1000, XB.SamplingMethod=\"joint\")\n# set the maximum depth of trees to be 5\nIPP.WW$ParaTable$treeDepth = 5\n# execute all tasks\nIPP.WW$ExecuteAll()\n# draw impact pattern plots (IPP)\nIPP.WW$DrawIPP(centralized = TRUE, nc = 4)\n# draw feature interaction network (FIN)\nIPP.WW$DrawFIN(threshold = 0.1, lay.out = igraph::layout.circle)\n\n#------ THIRD EXAMPLE\nlibrary(kernlab)\ndata(\"iris\")\niris.SVM <- ksvm(Species ~ ., data = iris,kernel=\"rbfdot\", kpar=\"automatic\",C=0.1, prob.model = TRUE)\n# remove the output variable\niris.ds = iris[-5]\n# create IPPModel object\nIPP.iris = IPPModel$new(XDS=iris.ds, PredFun=iris.SVM,\n                        ModelPackage=\"kernlab\", PredType=\"prob\", PredDim=1,\n                        XB.Size=200, XB.SamplingMethod=\"independent\")\n# execute the tasks step by step\nIPP.iris$SamplingXA()  # sampling XA\nIPP.iris$SamplingXB()  # sampling XB\nIPP.iris$PredictData()  # predict\nIPP.iris$ClusterImpactPlots() # clustering impact plots\nIPP.iris$BuildTree()  # build tree\n# draw impact pattern plots (IPP)\nIPP.iris$DrawIPP(centralized = TRUE, nc = 4)\n# draw feature interaction network (FIN)\nIPP.iris$DrawFIN(threshold = 0.3, lay.out = igraph::layout.auto)\n# write the results into an excel file\nIPP.iris$WriteToExcel(\"output.xlsx\")\n\nrdoc(){\n    echo -e \"devtools::document()\" | R --no-save\n    rm /tmp/rdoc.pdf\n    R CMD Rd2pdf -o /tmp/rdoc.pdf man/*.Rd\n    open /tmp/rdoc.pdf\n}\n",
+    "created" : 1521471731572.000,
+    "dirty" : false,
+    "encoding" : "CP936",
+    "folds" : "",
+    "hash" : "303000346",
+    "id" : "95DA1879",
+    "lastKnownWriteTime" : 1521411704,
+    "path" : "~/zxhang/IPPModel/backup/testing.R",
+    "project_path" : "backup/testing.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
