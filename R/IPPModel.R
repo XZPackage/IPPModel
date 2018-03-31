@@ -261,7 +261,7 @@ IPPModel <- R6::R6Class(
             distMeasure = rep(NA,varNum) # the distance measure
             autoK = rep(TRUE,varNum); # if the number of cluster is determined automatically
             numK = rep(5,varNum); # the number of clusters if autoK is FALSE or the max number of cluster if autoK is TRUE
-            clusteringMethod = rep("kmeans", varNum) # clustering method
+            clusteringMethod = rep("kmedoids", varNum) # clustering method
 
             treeDepth = rep(3,varNum) # the maximum depth of decision tree
             minSplit = rep(60,varNum) # the minimum number of observations for splitting
@@ -600,7 +600,10 @@ IPPModel <- R6::R6Class(
             for(fea in AList){
                 IPPs = self$Clustering.Res[[fea]][["medoids"]]
                 if(centralized){
-                    IPPs = IPPs - rowMeans(IPPs)
+                    if(is.vector(IPPs))
+                        IPPs = IPPs - mean(IPPs)
+                    else
+                        IPPs = IPPs - rowMeans(IPPs)
                 }
                 bestK = self$Clustering.Res[[fea]][["bestK"]]
                 XA = self$XA.Sample[[fea]]
@@ -608,12 +611,7 @@ IPPModel <- R6::R6Class(
                 ymax = max(IPPs)
                 ymin = min(IPPs)
 
-                if(bestK > 1){
-                    y = IPPs[1,]
-                }else{
-                    y = IPPs[,1]
-                }
-
+                y = IPPs[1,]
                 if(self$ParaTable[fea,"dataType"] == "interval"){
 
                     plot(x = XA, y = y, type = "l", xlab = fea,
@@ -904,13 +902,25 @@ IPPModel <- R6::R6Class(
 
                 if(all(distMatrix < 0.00001)){
                     if(clusterMethod == 'kmeans')
-                        return (list(groups = rep(1, self$XB.Size), medoids = as.data.frame(colMeans(clusData)), bestK = 1))
+                        return (list(groups = rep(1, self$XB.Size), medoids = t(as.data.frame(colMeans(original.clusData))), bestK = 1))
                     else
                         return (list(groups = rep(1, self$XB.Size), medoids = original.clusData[1,], bestK = 1))
                 }
             }
 
-            # -----Clustering by k-medoids method-----
+            # -----only one cluster-----
+            if (numK == 1){
+                if(clusterMethod == 'kmeans'){
+                    return (list(groups = rep(1, self$XB.Size), medoids = t(as.data.frame(colMeans(original.clusData))), bestK = 1))
+                }else{
+                    distSum = rowSums(as.matrix(distMatrix))
+                    ind = (1:length(distSum))[distSum == min(distSum)]
+                    if(length(ind) > 1) ind = ind[1]
+                    return (list(groups = rep(1, self$XB.Size), medoids = original.clusData[ind,], bestK = 1))
+                }
+            }
+
+            # -----Clustering by k-medoids or k-means method-----
             if(autoK){ # the number of clusters are determined through Dunn index
                 clusRes = list()
                 bestDunn = 0
@@ -925,7 +935,6 @@ IPPModel <- R6::R6Class(
                             temp = akmeans::akmeans(x = clusData, min.k = k, max.k = k, d.metric = 2, ths1 = 1e10)
                             clusRes[[k]] = list(clustering = temp$cluster,medoids = temp$centers)
                         }
-
                     }else{ # k-medoid
                         temp = cluster::pam(x = distMatrix,k = k, diss = TRUE)
                         clusRes[[k]] = list(clustering = temp$clustering,medoids = temp$medoids)
@@ -939,7 +948,7 @@ IPPModel <- R6::R6Class(
                         if(clusterMethod == 'kmedoids')
                             return(list(groups = rep(1,self$XB.Size), medoids = original.clusData[1,], bestK = 1))
                         else
-                            return(list(groups = rep(1,self$XB.Size), medoids = as.data.frame(colMeans(clusData)), bestK = 1))
+                            return(list(groups = rep(1,self$XB.Size), medoids = t(as.data.frame(colMeans(original.clusData))), bestK = 1))
                     }
 
                     if(clusterIndex > bestDunn){
@@ -971,7 +980,7 @@ IPPModel <- R6::R6Class(
             if(bestK == 1){ # only one cluster
                 groups = rep(1,self$XB.Size)
                 if(clusterMethod == 'kmeans')
-                    medoids = colMeans(clusData)
+                    medoids = t(as.data.frame(colMeans(original.clusData)))
                 else
                     medoids = original.clusData[1,]
             }
